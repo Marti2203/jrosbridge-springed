@@ -1,5 +1,6 @@
 package edu.wpi.rail.jrosbridge;
 
+import jakarta.websocket.ClientEndpoint;
 import java.awt.image.Raster;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,24 +14,21 @@ import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.stream.JsonParsingException;
-import javax.websocket.ClientEndpoint;
-import javax.websocket.ContainerProvider;
-import javax.websocket.DeploymentException;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
+
 
 import edu.wpi.rail.jrosbridge.callback.CallServiceCallback;
 import edu.wpi.rail.jrosbridge.services.ServiceRequest;
-import org.glassfish.grizzly.http.util.Base64Utils;
 
 import edu.wpi.rail.jrosbridge.callback.ServiceCallback;
 import edu.wpi.rail.jrosbridge.callback.TopicCallback;
 import edu.wpi.rail.jrosbridge.handler.RosHandler;
 import edu.wpi.rail.jrosbridge.messages.Message;
 import edu.wpi.rail.jrosbridge.services.ServiceResponse;
+import org.springframework.util.Base64Utils;
+import org.springframework.web.socket.CloseStatus;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 /**
  * The Ros object is the main connection point to the rosbridge server. This
@@ -41,133 +39,33 @@ import edu.wpi.rail.jrosbridge.services.ServiceResponse;
  * @author Russell Toris - russell.toris@gmail.com
  * @version April 1, 2014
  */
-@ClientEndpoint
-public class Ros {
-
-	/**
-	 * The default hostname used if none is provided.
-	 */
-	public static final String DEFAULT_HOSTNAME = "localhost";
-
-	/**
-	 * The default port used if none is provided.
-	 */
-	public static final int DEFAULT_PORT = 9090;
-
-	private final String hostname;
-	private final int port;
-	private final JRosbridge.WebSocketType protocol;
+public class Ros extends TextWebSocketHandler {
 
 	// active session (stored upon connection)
-	private Session session;
+	private WebSocketSession session;
 
 	// used throughout the library to create unique IDs for requests.
-	private long idCounter;
+	private long idCounter = 0;
 
 	// keeps track of callback functions for a given topic
-	private final HashMap<String, ArrayList<TopicCallback>> topicCallbacks;
+	private final HashMap<String, ArrayList<TopicCallback>> topicCallbacks = new HashMap<>();
 
 	// keeps track of callback functions for a given service request
-	private final HashMap<String, ServiceCallback> serviceCallbacks;
+	private final HashMap<String, ServiceCallback> serviceCallbacks = new HashMap<>();
 
 	// keeps track of callback functions for a given advertised service
-	private final HashMap<String, CallServiceCallback> callServiceCallbacks;
+	private final HashMap<String, CallServiceCallback> callServiceCallbacks = new HashMap<>();
 
 	// keeps track of handlers for this connection
-	private final ArrayList<RosHandler> handlers;
+	private final ArrayList<RosHandler> handlers = new ArrayList<>();
+
+
 
 	/**
-	 * Create a connection to ROS with the default hostname and port. A call to
-	 * connect must be made to establish a connection.
+	 * Create a connection to ROS with the given web socket session.
 	 */
-	public Ros() {
-		this(Ros.DEFAULT_HOSTNAME);
-	}
-
-	/**
-	 * Create a connection to ROS with the given hostname and default port. A
-	 * call to connect must be made to establish a connection. By default,
-	 * WebSockets is used (as opposed to WSS).
-	 * 
-	 * @param hostname
-	 *            The hostname to connect to.
-	 */
-	public Ros(String hostname) {
-		this(hostname, Ros.DEFAULT_PORT);
-	}
-
-	/**
-	 * Create a connection to ROS with the given hostname and port. A call to
-	 * connect must be made to establish a connection. By default, WebSockets is
-	 * used (as opposed to WSS).
-	 * 
-	 * @param hostname
-	 *            The hostname to connect to.
-	 * @param port
-	 *            The port to connect to.
-	 */
-	public Ros(String hostname, int port) {
-		this(hostname, port, JRosbridge.WebSocketType.ws);
-	}
-
-	/**
-	 * Create a connection to ROS with the given hostname and port. A call to
-	 * connect must be made to establish a connection.
-	 * 
-	 * @param hostname
-	 *            The hostname to connect to.
-	 * @param port
-	 *            The port to connect to.
-	 * @param protocol
-	 *            The WebSocket protocol to use.
-	 */
-	public Ros(String hostname, int port, JRosbridge.WebSocketType protocol) {
-		this.hostname = hostname;
-		this.port = port;
-		this.protocol = protocol;
-		this.session = null;
-		this.idCounter = 0;
-		this.topicCallbacks = new HashMap<String, ArrayList<TopicCallback>>();
-		this.serviceCallbacks = new HashMap<String, ServiceCallback>();
-		this.callServiceCallbacks = new HashMap<String, CallServiceCallback>();
-		this.handlers = new ArrayList<RosHandler>();
-	}
-
-	/**
-	 * Get the hostname associated with this connection.
-	 * 
-	 * @return The hostname associated with this connection.
-	 */
-	public String getHostname() {
-		return this.hostname;
-	}
-
-	/**
-	 * Get the port associated with this connection.
-	 * 
-	 * @return The port associated with this connection.
-	 */
-	public int getPort() {
-		return this.port;
-	}
-
-	/**
-	 * Get the type of WebSocket protocol being used.
-	 * 
-	 * @return The type of WebSocket protocol being used.
-	 */
-	public JRosbridge.WebSocketType getProtocol() {
-		return this.protocol;
-	}
-
-	/**
-	 * Get the full URL this client is connecting to.
-	 * 
-	 * @return
-	 */
-	public String getURL() {
-		return this.protocol.toString() + "://" + this.hostname + ":"
-				+ this.port;
+	public Ros(WebSocketSession session) {
+		this.session = session;
 	}
 
 	/**
@@ -190,27 +88,6 @@ public class Ros {
 		this.handlers.add(handler);
 	}
 
-	/**
-	 * Attempt to establish a connection to rosbridge. Errors are printed to the
-	 * error output stream.
-	 * 
-	 * @return Returns true if the connection was established successfully and
-	 *         false otherwise.
-	 */
-	public boolean connect() {
-		try {
-			// create a WebSocket connection here
-			URI uri = new URI(this.getURL());
-			ContainerProvider.getWebSocketContainer()
-					.connectToServer(this, uri);
-			return true;
-		} catch (DeploymentException | URISyntaxException | IOException e) {
-			// failed connection, return false
-			System.err.println("[ERROR]: Could not create WebSocket: "
-					+ e.getMessage());
-			return false;
-		}
-	}
 
 	/**
 	 * Disconnect the connection to rosbridge. Errors are printed to the error
@@ -244,30 +121,29 @@ public class Ros {
 
 	/**
 	 * This function is called once a successful connection is made.
-	 * 
+	 *
 	 * @param session
 	 *            The session associated with the connection.
 	 */
-	@OnOpen
-	public void onOpen(Session session) {
-		// store the session
+	@Override
+	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 		this.session = session;
-
 		// call the handlers
 		for (RosHandler handler : this.handlers) {
 			handler.handleConnection(session);
 		}
 	}
 
+
 	/**
 	 * This function is called once a successful disconnection is made.
-	 * 
+	 *
 	 * @param session
 	 *            The session associated with the disconnection.
 	 */
-	@OnClose
-	public void onClose(Session session) {
-		// remove the session
+
+	@Override
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
 		this.session = null;
 
 		// call the handlers
@@ -278,17 +154,16 @@ public class Ros {
 
 	/**
 	 * This function is called if an error occurs.
-	 * 
-	 * @param session
-	 *            The session for the error.
+	 *
 	 * @param session
 	 *            The session for the error.
 	 */
-	@OnError
-	public void onError(Session session, Throwable t) {
+
+	@Override
+	public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
 		// call the handlers
 		for (RosHandler handler : this.handlers) {
-			handler.handleError(session, t);
+			handler.handleError(session, exception);
 		}
 	}
 
@@ -296,16 +171,16 @@ public class Ros {
 	 * This method is called once an entire message has been read in by the
 	 * connection from rosbridge. It will parse the incoming JSON and attempt to
 	 * handle the request appropriately.
-	 * 
+	 *
 	 * @param message
 	 *            The incoming JSON message from rosbridge.
 	 */
-	@OnMessage
-	public void onMessage(String message) {
+	@Override
+	protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 		try {
 			// parse the JSON
 			JsonObject jsonObject = Json
-					.createReader(new StringReader(message)).readObject();
+					.createReader(new StringReader(message.getPayload())).readObject();
 
 			// check for compression
 			String op = jsonObject.getString(JRosbridge.FIELD_OP);
@@ -320,9 +195,9 @@ public class Ros {
 				int[] rawData = null;
 				rawData = imageData.getPixels(0, 0, imageData.getWidth(),
 						imageData.getHeight(), rawData);
-				StringBuffer buffer = new StringBuffer();
-				for (int i = 0; i < rawData.length; i++) {
-					buffer.append(Character.toString((char) rawData[i]));
+				StringBuilder buffer = new StringBuilder();
+				for (int rawDatum : rawData) {
+					buffer.append((char) rawDatum);
 				}
 
 				// reparse the JSON
@@ -349,54 +224,61 @@ public class Ros {
 	private void handleMessage(JsonObject jsonObject) {
 		// check for the correct fields
 		String op = jsonObject.getString(JRosbridge.FIELD_OP);
-		if (op.equals(JRosbridge.OP_CODE_PUBLISH)) {
-			// check for the topic name
-			String topic = jsonObject.getString(JRosbridge.FIELD_TOPIC);
+		switch (op) {
+			case JRosbridge.OP_CODE_PUBLISH:
+				// check for the topic name
+				String topic = jsonObject.getString(JRosbridge.FIELD_TOPIC);
 
-			// call each callback with the message
-			ArrayList<TopicCallback> callbacks = topicCallbacks.get(topic);
-			if (callbacks != null) {
-				Message msg = new Message(
-						jsonObject.getJsonObject(JRosbridge.FIELD_MESSAGE));
-				for (TopicCallback cb : callbacks) {
-					cb.handleMessage(msg);
+				// call each callback with the message
+				ArrayList<TopicCallback> callbacks = topicCallbacks.get(topic);
+				if (callbacks != null) {
+					Message msg = new Message(
+							jsonObject.getJsonObject(JRosbridge.FIELD_MESSAGE));
+					for (TopicCallback cb : callbacks) {
+						cb.handleMessage(msg);
+					}
 				}
-			}
-		} else if (op.equals(JRosbridge.OP_CODE_SERVICE_RESPONSE)) {
-			// check for the request ID
-			String id = jsonObject.getString(JRosbridge.FIELD_ID);
+				break;
+			case JRosbridge.OP_CODE_SERVICE_RESPONSE: {
+				// check for the request ID
+				String id = jsonObject.getString(JRosbridge.FIELD_ID);
 
-			// call the callback for the request
-			ServiceCallback cb = serviceCallbacks.get(id);
-			if (cb != null) {
-				// check if a success code was given
-				boolean success = jsonObject
-						.containsKey(JRosbridge.FIELD_RESULT) ? jsonObject
-						.getBoolean(JRosbridge.FIELD_RESULT) : true;
-				// get the response
-				JsonObject values = jsonObject
-						.getJsonObject(JRosbridge.FIELD_VALUES);
-				ServiceResponse response = new ServiceResponse(values, success);
-				cb.handleServiceResponse(response);
+				// call the callback for the request
+				ServiceCallback cb = serviceCallbacks.get(id);
+				if (cb != null) {
+					// check if a success code was given
+					boolean success = !jsonObject
+							.containsKey(JRosbridge.FIELD_RESULT) || jsonObject
+							.getBoolean(JRosbridge.FIELD_RESULT);
+					// get the response
+					JsonObject values = jsonObject
+							.getJsonObject(JRosbridge.FIELD_VALUES);
+					ServiceResponse response = new ServiceResponse(values, success);
+					cb.handleServiceResponse(response);
+				}
+				break;
 			}
-		} else if (op.equals(JRosbridge.OP_CODE_CALL_SERVICE)) {
-			// check for the request ID
-			String id = jsonObject.getString("id");
-			String service = jsonObject.getString("service");
+			case JRosbridge.OP_CODE_CALL_SERVICE: {
+				// check for the request ID
+				String id = jsonObject.getString("id");
+				String service = jsonObject.getString("service");
 
-			// call the callback for the request
-			CallServiceCallback cb = callServiceCallbacks.get(service);
-			if (cb != null) {
-				// get the response
-				JsonObject args = jsonObject
-						.getJsonObject(JRosbridge.FIELD_ARGS);
-				ServiceRequest request = new ServiceRequest(args);
-				request.setId(id);
-				cb.handleServiceCall(request);
+				// call the callback for the request
+				CallServiceCallback cb = callServiceCallbacks.get(service);
+				if (cb != null) {
+					// get the response
+					JsonObject args = jsonObject
+							.getJsonObject(JRosbridge.FIELD_ARGS);
+					ServiceRequest request = new ServiceRequest(args);
+					request.setId(id);
+					cb.handleServiceCall(request);
+				}
+				break;
 			}
-		} else {
-			System.err.println("[WARN]: Unrecognized op code: "
-					+ jsonObject.toString());
+			default:
+				System.err.println("[WARN]: Unrecognized op code: "
+						+ jsonObject);
+				break;
 		}
 
 	}
@@ -413,7 +295,7 @@ public class Ros {
 		if (this.isConnected()) {
 			try {
 				// send it as text
-				this.session.getBasicRemote().sendText(jsonObject.toString());
+				this.session.sendMessage(new TextMessage(jsonObject.toString()));
 				return true;
 			} catch (IOException e) {
 				System.err.println("[ERROR]: Could not send message: "
@@ -468,7 +350,7 @@ public class Ros {
 	public void registerTopicCallback(String topic, TopicCallback cb) {
 		// check if any callbacks exist yet
 		if (!this.topicCallbacks.containsKey(topic)) {
-			this.topicCallbacks.put(topic, new ArrayList<TopicCallback>());
+			this.topicCallbacks.put(topic, new ArrayList<>());
 		}
 
 		// add the callback
@@ -488,9 +370,7 @@ public class Ros {
 		if (this.topicCallbacks.containsKey(topic)) {
 			// remove the callback if it exists
 			ArrayList<TopicCallback> callbacks = this.topicCallbacks.get(topic);
-			if (callbacks.contains(cb)) {
-				callbacks.remove(cb);
-			}
+			callbacks.remove(cb);
 
 			// remove the list if it is empty
 			if (callbacks.size() == 0) {

@@ -3,11 +3,7 @@ package edu.wpi.rail.jrosbridge;
 import static org.junit.Assert.*;
 
 import javax.json.Json;
-import javax.websocket.Session;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 
 import edu.wpi.rail.jrosbridge.JRosbridge;
 import edu.wpi.rail.jrosbridge.Ros;
@@ -16,6 +12,10 @@ import edu.wpi.rail.jrosbridge.callback.TopicCallback;
 import edu.wpi.rail.jrosbridge.handler.RosHandler;
 import edu.wpi.rail.jrosbridge.messages.Message;
 import edu.wpi.rail.jrosbridge.services.ServiceResponse;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.web.socket.WebSocketSession;
 
 public class TestRos {
 
@@ -90,21 +90,13 @@ public class TestRos {
 
 	@Test
 	public void testConnect() throws InterruptedException {
-		assertTrue(r1.connect());
 		assertTrue(r1.isConnected());
 	}
 
 	@Test
 	public void testDisconnect() {
-		assertTrue(r1.connect());
 		assertTrue(r1.disconnect());
 		assertFalse(r1.isConnected());
-	}
-
-	@Test
-	public void testConnectFailed() {
-		assertFalse(r3.connect());
-		assertFalse(r3.isConnected());
 	}
 
 	@Test
@@ -128,7 +120,6 @@ public class TestRos {
 		assertFalse(h.disconnection);
 		assertFalse(h.error);
 
-		assertTrue(r1.connect());
 		Thread.sleep(500);
 		assertTrue(r1.isConnected());
 		assertTrue(h.connection);
@@ -150,7 +141,6 @@ public class TestRos {
 
 	@Test
 	public void testSend() {
-		assertTrue(r1.connect());
 		assertTrue(r1.send(Json.createObjectBuilder().add("test", "value")
 				.build()));
 
@@ -175,7 +165,6 @@ public class TestRos {
 
 	@Test
 	public void testAuthenticate() {
-		assertTrue(r1.connect());
 		r1.authenticate("test1", "test2", "test3", "test4", 5, "test5", 10);
 
 		while (DummyHandler.latest == null) {
@@ -204,7 +193,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageInvalidOpCode() {
-		assertTrue(r1.connect());
 		r1.onMessage("{\"" + JRosbridge.FIELD_OP + "\":\"invalid\"}");
 		Thread.yield();
 		assertNull(DummyHandler.latest);
@@ -212,7 +200,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageInvalidPngData() {
-		assertTrue(r1.connect());
 		r1.onMessage("{\"" + JRosbridge.FIELD_OP + "\":\""
 				+ JRosbridge.OP_CODE_PNG + "\"}");
 		Thread.yield();
@@ -233,7 +220,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessagePngData() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb = new DummyTopicCallback();
 		r1.registerTopicCallback("myTopic", cb);
@@ -253,7 +239,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageNoTopicCallbacks() {
-		assertTrue(r1.connect());
 		r1.onMessage("{\"" + JRosbridge.FIELD_OP + "\":\""
 				+ JRosbridge.OP_CODE_PUBLISH + "\",\"" + JRosbridge.FIELD_TOPIC
 				+ "\":\"myTopic\",\"" + JRosbridge.FIELD_MESSAGE
@@ -264,7 +249,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageMultiTopicCallbacks() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb1 = new DummyTopicCallback();
 		DummyTopicCallback cb2 = new DummyTopicCallback();
@@ -287,7 +271,6 @@ public class TestRos {
 
 	@Test
 	public void testDeregisterTopicCallback() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb1 = new DummyTopicCallback();
 		DummyTopicCallback cb2 = new DummyTopicCallback();
@@ -310,7 +293,6 @@ public class TestRos {
 
 	@Test
 	public void testDeregisterTopicCallbackAll() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb1 = new DummyTopicCallback();
 		DummyTopicCallback cb2 = new DummyTopicCallback();
@@ -333,7 +315,6 @@ public class TestRos {
 
 	@Test
 	public void testDeregisterTopicCallbackInvalidTopic() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb1 = new DummyTopicCallback();
 		DummyTopicCallback cb2 = new DummyTopicCallback();
@@ -358,7 +339,6 @@ public class TestRos {
 
 	@Test
 	public void testDeregisterTopicCallbackInvalidCallback() {
-		assertTrue(r1.connect());
 
 		DummyTopicCallback cb1 = new DummyTopicCallback();
 		DummyTopicCallback cb2 = new DummyTopicCallback();
@@ -382,7 +362,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageNoServiceCallbacks() {
-		assertTrue(r1.connect());
 		r1.onMessage("{\"" + JRosbridge.FIELD_OP + "\":\""
 				+ JRosbridge.OP_CODE_SERVICE_RESPONSE + "\",\""
 				+ JRosbridge.FIELD_ID + "\":\"id123\",\""
@@ -394,7 +373,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageServiceCallback() {
-		assertTrue(r1.connect());
 
 		DummyServiceCallback cb1 = new DummyServiceCallback();
 		r1.registerServiceCallback("id123", cb1);
@@ -414,7 +392,6 @@ public class TestRos {
 
 	@Test
 	public void testOnMessageServiceCallbackNoResult() {
-		assertTrue(r1.connect());
 
 		DummyServiceCallback cb1 = new DummyServiceCallback();
 		r1.registerServiceCallback("id123", cb1);
@@ -431,24 +408,24 @@ public class TestRos {
 		assertTrue(cb1.latest.getResult());
 	}
 
-	private class DummyRosHandler implements RosHandler {
+	private static class DummyRosHandler implements RosHandler {
 
 		public boolean connection, disconnection, error;
 
-		public void handleConnection(Session session) {
+		public void handleConnection(WebSocketSession session) {
 			this.connection = true;
 		}
 
-		public void handleDisconnection(Session session) {
+		public void handleDisconnection(WebSocketSession session) {
 			this.disconnection = true;
 		}
 
-		public void handleError(Session session, Throwable t) {
+		public void handleError(WebSocketSession session, Throwable t) {
 			this.error = true;
 		}
 	}
 
-	private class DummyTopicCallback implements TopicCallback {
+	private static class DummyTopicCallback implements TopicCallback {
 
 		public Message latest = null;
 
@@ -457,7 +434,7 @@ public class TestRos {
 		}
 	}
 
-	private class DummyServiceCallback implements ServiceCallback {
+	private static class DummyServiceCallback implements ServiceCallback {
 
 		public ServiceResponse latest = null;
 

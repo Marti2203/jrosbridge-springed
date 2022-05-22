@@ -1,6 +1,6 @@
 package edu.wpi.rail.jrosbridge.handler;
 
-import javax.websocket.Session;
+import org.springframework.web.socket.WebSocketSession;
 
 /**
  * The RosHandler interface defines the methods that will be called during
@@ -18,7 +18,7 @@ public interface RosHandler {
 	 * @param session
 	 *            The session associated with the connection.
 	 */
-	public void handleConnection(Session session);
+	public void handleConnection(WebSocketSession session);
 
 	/**
 	 * Handle the disconnection event. This occurs during a successful
@@ -27,7 +27,7 @@ public interface RosHandler {
 	 * @param session
 	 *            The session associated with the disconnection.
 	 */
-	public void handleDisconnection(Session session);
+	public void handleDisconnection(WebSocketSession session);
 
 	/**
 	 * Handle the error event.
@@ -37,5 +37,5 @@ public interface RosHandler {
 	 * @param t
 	 *            The error.
 	 */
-	public void handleError(Session session, Throwable t);
+	public void handleError(WebSocketSession session, Throwable t);
 }

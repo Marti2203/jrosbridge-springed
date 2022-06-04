@@ -28,7 +28,7 @@ public class TestDuration {
 		assertEquals(0, empty.getNsecs());
 		assertTrue(empty.isZero());
 		assertEquals(0.0, empty.toSec(), 0);
-		assertEquals(0l, empty.toNSec());
+		assertEquals(0L, empty.toNSec());
 
 		assertEquals("{\"secs\":0,\"nsecs\":0}", empty.toString());
 
@@ -47,7 +47,7 @@ public class TestDuration {
 		assertEquals(200000000, d1.getNsecs());
 		assertFalse(d1.isZero());
 		assertEquals(10.2, d1.toSec(), 0);
-		assertEquals(10200000000l, d1.toNSec());
+		assertEquals(10200000000L, d1.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", d1.toString());
 
@@ -66,7 +66,7 @@ public class TestDuration {
 		assertEquals(1024, d2.getNsecs());
 		assertFalse(d2.isZero());
 		assertEquals(1.024e-6, d2.toSec(), 0);
-		assertEquals(1024l, d2.toNSec());
+		assertEquals(1024L, d2.toNSec());
 
 		assertEquals("{\"secs\":0,\"nsecs\":1024}", d2.toString());
 
@@ -85,7 +85,7 @@ public class TestDuration {
 		assertEquals(20, d3.getNsecs());
 		assertFalse(d3.isZero());
 		assertEquals(10.00000002, d3.toSec(), 0);
-		assertEquals(10000000020l, d3.toNSec());
+		assertEquals(10000000020L, d3.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":20}", d3.toString());
 
@@ -98,7 +98,7 @@ public class TestDuration {
 
 	@Test
 	public void testAdd() {
-		assertEquals(new Duration(10000001044l), d2.add(d3));
+		assertEquals(new Duration(10000001044L), d2.add(d3));
 		assertEquals(d1, empty.add(d1));
 		assertEquals(d2, empty.add(d2));
 		assertEquals(d3, empty.add(d3));
@@ -106,7 +106,7 @@ public class TestDuration {
 
 	@Test
 	public void testSubtract() {
-		assertEquals(new Duration(9999998996l), d3.subtract(d2));
+		assertEquals(new Duration(9999998996L), d3.subtract(d2));
 		assertEquals(d1, d1.subtract(empty));
 		assertEquals(d2, d2.subtract(empty));
 		assertEquals(d3, d3.subtract(empty));
@@ -166,7 +166,7 @@ public class TestDuration {
 
 	@Test
 	public void testEqualsWrongObject() {
-		assertFalse(empty.equals(new String(empty.toString())));
+		assertFalse(empty.equals(empty.toString()));
 	}
 
 	@Test
@@ -205,7 +205,7 @@ public class TestDuration {
 		assertEquals(200000000, d.getNsecs());
 		assertFalse(d.isZero());
 		assertEquals(10.2, d.toSec(), 0);
-		assertEquals(10200000000l, d.toNSec());
+		assertEquals(10200000000L, d.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", d.toString());
 
@@ -218,7 +218,7 @@ public class TestDuration {
 
 	@Test
 	public void testFromNano() {
-		Duration d = Duration.fromNano(10200000000l);
+		Duration d = Duration.fromNano(10200000000L);
 
 		assertEquals(10, d.secs);
 		assertEquals(200000000, d.nsecs);
@@ -226,7 +226,7 @@ public class TestDuration {
 		assertEquals(200000000, d.getNsecs());
 		assertFalse(d.isZero());
 		assertEquals(10.2, d.toSec(), 0);
-		assertEquals(10200000000l, d.toNSec());
+		assertEquals(10200000000L, d.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", d.toString());
 
@@ -278,7 +278,7 @@ public class TestDuration {
 		assertEquals(0, d.getSecs());
 		assertEquals(d1.getNsecs(), d.getNsecs());
 		assertEquals(d1.getNsecs() / 1000000000.0, d.toSec(), 0);
-		assertEquals((long) d1.getNsecs(), d.toNSec());
+		assertEquals(d1.getNsecs(), d.toNSec());
 	}
 
 	@Test
@@ -288,8 +288,8 @@ public class TestDuration {
 		Duration d = Duration.fromJsonObject(jsonObject);
 		assertEquals(d1.getSecs(), d.getSecs());
 		assertEquals(0, d.getNsecs());
-		assertEquals((double) d1.getSecs(), d.toSec(), 0);
-		assertEquals(d1.getSecs() * 1000000000l, d.toNSec());
+		assertEquals(d1.getSecs(), d.toSec(), 0);
+		assertEquals(d1.getSecs() * 1000000000L, d.toNSec());
 	}
 
 	public boolean greaterThan(long a, long b) {

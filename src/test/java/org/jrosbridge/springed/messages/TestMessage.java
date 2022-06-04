@@ -82,38 +82,38 @@ public class TestMessage {
 
 	@Test
 	public void testEquals() {
-		assertFalse(empty.equals(m1));
-		assertFalse(m1.equals(empty));
-		assertFalse(empty.equals(m2));
-		assertFalse(m2.equals(empty));
-		assertFalse(empty.equals(m3));
-		assertFalse(m3.equals(empty));
-		assertFalse(empty.equals(m4));
-		assertFalse(m4.equals(empty));
+		assertNotEquals(empty, m1);
+		assertNotEquals(m1, empty);
+		assertNotEquals(empty, m2);
+		assertNotEquals(m2, empty);
+		assertNotEquals(empty, m3);
+		assertNotEquals(m3, empty);
+		assertNotEquals(empty, m4);
+		assertNotEquals(m4, empty);
 
-		assertTrue(m1.equals(m2));
-		assertTrue(m1.equals(m3));
-		assertTrue(m1.equals(m4));
-		assertTrue(m2.equals(m1));
-		assertTrue(m2.equals(m3));
-		assertTrue(m2.equals(m4));
-		assertTrue(m3.equals(m1));
-		assertTrue(m3.equals(m2));
-		assertTrue(m3.equals(m4));
-		assertTrue(m4.equals(m1));
-		assertTrue(m4.equals(m2));
-		assertTrue(m4.equals(m3));
+		assertEquals(m1, m2);
+		assertEquals(m1, m3);
+		assertEquals(m1, m4);
+		assertEquals(m2, m1);
+		assertEquals(m2, m3);
+		assertEquals(m2, m4);
+		assertEquals(m3, m1);
+		assertEquals(m3, m2);
+		assertEquals(m3, m4);
+		assertEquals(m4, m1);
+		assertEquals(m4, m2);
+		assertEquals(m4, m3);
 
-		assertTrue(empty.equals(empty));
-		assertTrue(m1.equals(m1));
-		assertTrue(m2.equals(m2));
-		assertTrue(m3.equals(m3));
-		assertTrue(m4.equals(m4));
+		assertEquals(empty, empty);
+		assertEquals(m1, m1);
+		assertEquals(m2, m2);
+		assertEquals(m3, m3);
+		assertEquals(m4, m4);
 	}
 
 	@Test
 	public void testEqualsWrongObject() {
-		assertFalse(empty.equals(new String(empty.toString())));
+		assertNotEquals(empty, new String(empty.toString()));
 	}
 
 	@Test

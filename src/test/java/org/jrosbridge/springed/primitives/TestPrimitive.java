@@ -57,15 +57,15 @@ public class TestPrimitive {
 
 	@Test
 	public void testEquals() {
-		assertTrue(p1.equals(p2));
-		assertTrue(p2.equals(p1));
-		assertTrue(p1.equals(p1));
-		assertTrue(p2.equals(p2));
+		assertEquals(p1, p2);
+		assertEquals(p2, p1);
+		assertEquals(p1, p1);
+		assertEquals(p2, p2);
 	}
 
 	@Test
 	public void testEqualsWrongObject() {
-		assertFalse(p1.equals(new String(p1.toString())));
+		assertNotEquals(p1, new String(p1.toString()));
 	}
 
 	@Test
@@ -148,10 +148,10 @@ public class TestPrimitive {
 
 	@Test
 	public void testToUInt32() {
-		assertEquals(0, Primitive.toUInt32(0l));
-		assertEquals(5, Primitive.toUInt32(5l));
-		assertEquals(10, Primitive.toUInt32(10l));
-		assertEquals(15, Primitive.toUInt32(15l));
+		assertEquals(0, Primitive.toUInt32(0L));
+		assertEquals(5, Primitive.toUInt32(5L));
+		assertEquals(10, Primitive.toUInt32(10L));
+		assertEquals(15, Primitive.toUInt32(15L));
 		assertEquals(-1, Primitive.toUInt32(Long.MAX_VALUE));
 	}
 
@@ -168,68 +168,68 @@ public class TestPrimitive {
 
 	@Test
 	public void testFromUInt32() {
-		assertEquals(0l, Primitive.fromUInt32(0));
-		assertEquals(5l, Primitive.fromUInt32(5));
-		assertEquals(10l, Primitive.fromUInt32(10));
-		assertEquals(15l, Primitive.fromUInt32(15));
-		assertEquals(4294967295l, Primitive.fromUInt32(-1));
+		assertEquals(0L, Primitive.fromUInt32(0));
+		assertEquals(5L, Primitive.fromUInt32(5));
+		assertEquals(10L, Primitive.fromUInt32(10));
+		assertEquals(15L, Primitive.fromUInt32(15));
+		assertEquals(4294967295L, Primitive.fromUInt32(-1));
 	}
 
 	@Test
 	public void testFromUInt32Array() {
 		long[] values = Primitive.fromUInt32(new int[] { 0, 5, 10, 15, -1 });
-		assertEquals(0l, values[0]);
-		assertEquals(5l, values[1]);
-		assertEquals(10l, values[2]);
-		assertEquals(15l, values[3]);
-		assertEquals(4294967295l, values[4]);
+		assertEquals(0L, values[0]);
+		assertEquals(5L, values[1]);
+		assertEquals(10L, values[2]);
+		assertEquals(15L, values[3]);
+		assertEquals(4294967295L, values[4]);
 	}
 
 	@Test
 	public void testToUInt64() {
-		assertEquals(0l, Primitive.toUInt64(BigInteger.valueOf(0l)));
-		assertEquals(5l, Primitive.toUInt64(BigInteger.valueOf(5l)));
-		assertEquals(10l, Primitive.toUInt64(BigInteger.valueOf(10l)));
-		assertEquals(15l, Primitive.toUInt64(BigInteger.valueOf(15l)));
-		assertEquals(-1l,
+		assertEquals(0L, Primitive.toUInt64(BigInteger.valueOf(0L)));
+		assertEquals(5L, Primitive.toUInt64(BigInteger.valueOf(5L)));
+		assertEquals(10L, Primitive.toUInt64(BigInteger.valueOf(10L)));
+		assertEquals(15L, Primitive.toUInt64(BigInteger.valueOf(15L)));
+		assertEquals(-1L,
 				Primitive.toUInt64(new BigInteger("18446744073709551615")));
 	}
 
 	@Test
 	public void testToUInt64Array() {
 		long[] values = Primitive.toUInt64(new BigInteger[] {
-				BigInteger.valueOf(0l), BigInteger.valueOf(5l),
-				BigInteger.valueOf(10l), BigInteger.valueOf(15l),
+				BigInteger.valueOf(0L), BigInteger.valueOf(5L),
+				BigInteger.valueOf(10L), BigInteger.valueOf(15L),
 				new BigInteger("18446744073709551615") });
-		assertEquals(0l, values[0]);
-		assertEquals(5l, values[1]);
-		assertEquals(10l, values[2]);
-		assertEquals(15l, values[3]);
-		assertEquals(-1l, values[4]);
+		assertEquals(0L, values[0]);
+		assertEquals(5L, values[1]);
+		assertEquals(10L, values[2]);
+		assertEquals(15L, values[3]);
+		assertEquals(-1L, values[4]);
 	}
 
 	@Test
 	public void testFromUInt64() {
-		assertEquals(BigInteger.valueOf(0l), Primitive.fromUInt64(0l));
-		assertEquals(BigInteger.valueOf(5l), Primitive.fromUInt64(5l));
-		assertEquals(BigInteger.valueOf(10l), Primitive.fromUInt64(10l));
-		assertEquals(BigInteger.valueOf(15l), Primitive.fromUInt64(15l));
+		assertEquals(BigInteger.valueOf(0L), Primitive.fromUInt64(0L));
+		assertEquals(BigInteger.valueOf(5L), Primitive.fromUInt64(5L));
+		assertEquals(BigInteger.valueOf(10L), Primitive.fromUInt64(10L));
+		assertEquals(BigInteger.valueOf(15L), Primitive.fromUInt64(15L));
 		assertEquals(new BigInteger("18446744073709551615"),
-				Primitive.fromUInt64(-1l));
+				Primitive.fromUInt64(-1L));
 	}
 
 	@Test
 	public void testFromUInt64Array() {
-		BigInteger[] values = Primitive.fromUInt64(new long[] { 0l, 5l, 10l,
-				15l, -1l });
-		assertEquals(BigInteger.valueOf(0l), values[0]);
-		assertEquals(BigInteger.valueOf(5l), values[1]);
-		assertEquals(BigInteger.valueOf(10l), values[2]);
-		assertEquals(BigInteger.valueOf(15l), values[3]);
+		BigInteger[] values = Primitive.fromUInt64(new long[] {0L, 5L, 10L,
+				15L, -1L});
+		assertEquals(BigInteger.valueOf(0L), values[0]);
+		assertEquals(BigInteger.valueOf(5L), values[1]);
+		assertEquals(BigInteger.valueOf(10L), values[2]);
+		assertEquals(BigInteger.valueOf(15L), values[3]);
 		assertEquals(new BigInteger("18446744073709551615"), values[4]);
 	}
 
-	private class DummyPrimitive extends Primitive {
+	private static class DummyPrimitive extends Primitive {
 
 		public DummyPrimitive(String jsonString, String primitiveType) {
 			super(jsonString, primitiveType);

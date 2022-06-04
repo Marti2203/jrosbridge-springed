@@ -31,7 +31,7 @@ public class TestTime {
 		assertEquals(0, empty.getNsecs());
 		assertTrue(empty.isZero());
 		assertEquals(0.0, empty.toSec(), 0);
-		assertEquals(0l, empty.toNSec());
+		assertEquals(0L, empty.toNSec());
 		assertFalse(empty.isValid());
 
 		assertEquals("{\"secs\":0,\"nsecs\":0}", empty.toString());
@@ -51,7 +51,7 @@ public class TestTime {
 		assertEquals(200000000, t1.getNsecs());
 		assertFalse(t1.isZero());
 		assertEquals(10.2, t1.toSec(), 0);
-		assertEquals(10200000000l, t1.toNSec());
+		assertEquals(10200000000L, t1.toNSec());
 		assertTrue(t1.isValid());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", t1.toString());
@@ -71,7 +71,7 @@ public class TestTime {
 		assertEquals(1024, t2.getNsecs());
 		assertFalse(t2.isZero());
 		assertEquals(1.024e-6, t2.toSec(), 0);
-		assertEquals(1024l, t2.toNSec());
+		assertEquals(1024L, t2.toNSec());
 		assertTrue(t2.isValid());
 
 		assertEquals("{\"secs\":0,\"nsecs\":1024}", t2.toString());
@@ -91,7 +91,7 @@ public class TestTime {
 		assertEquals(20, t3.getNsecs());
 		assertFalse(t3.isZero());
 		assertEquals(10.00000002, t3.toSec(), 0);
-		assertEquals(10000000020l, t3.toNSec());
+		assertEquals(10000000020L, t3.toNSec());
 		assertTrue(t3.isValid());
 
 		assertEquals("{\"secs\":10,\"nsecs\":20}", t3.toString());
@@ -105,7 +105,7 @@ public class TestTime {
 
 	@Test
 	public void testAdd() {
-		assertEquals(new Time(10000001044l), t2.add(t3));
+		assertEquals(new Time(10000001044L), t2.add(t3));
 		assertEquals(t1, empty.add(t1));
 		assertEquals(t2, empty.add(t2));
 		assertEquals(t3, empty.add(t3));
@@ -113,7 +113,7 @@ public class TestTime {
 
 	@Test
 	public void testSubtract() {
-		assertEquals(new Time(9999998996l), t3.subtract(t2));
+		assertEquals(new Time(9999998996L), t3.subtract(t2));
 		assertEquals(t1, t1.subtract(empty));
 		assertEquals(t2, t2.subtract(empty));
 		assertEquals(t3, t3.subtract(empty));
@@ -126,10 +126,10 @@ public class TestTime {
 		Date date2 = t2.toDate();
 		Date date3 = t3.toDate();
 
-		assertEquals(0l, emptyDate.getTime());
-		assertEquals(10200l, date1.getTime());
-		assertEquals(0l, date2.getTime());
-		assertEquals(10000l, date3.getTime());
+		assertEquals(0L, emptyDate.getTime());
+		assertEquals(10200L, date1.getTime());
+		assertEquals(0L, date2.getTime());
+		assertEquals(10000L, date3.getTime());
 	}
 
 	@Test
@@ -142,28 +142,28 @@ public class TestTime {
 
 	@Test
 	public void testEquals() {
-		assertFalse(empty.equals(t1));
-		assertFalse(empty.equals(t2));
-		assertFalse(empty.equals(t3));
-		assertFalse(t1.equals(empty));
-		assertFalse(t1.equals(t2));
-		assertFalse(t1.equals(t3));
-		assertFalse(t2.equals(empty));
-		assertFalse(t2.equals(t1));
-		assertFalse(t2.equals(t3));
-		assertFalse(t3.equals(empty));
-		assertFalse(t3.equals(t1));
-		assertFalse(t3.equals(t2));
+		assertNotEquals(empty, t1);
+		assertNotEquals(empty, t2);
+		assertNotEquals(empty, t3);
+		assertNotEquals(t1, empty);
+		assertNotEquals(t1, t2);
+		assertNotEquals(t1, t3);
+		assertNotEquals(t2, empty);
+		assertNotEquals(t2, t1);
+		assertNotEquals(t2, t3);
+		assertNotEquals(t3, empty);
+		assertNotEquals(t3, t1);
+		assertNotEquals(t3, t2);
 
-		assertTrue(empty.equals(empty));
-		assertTrue(t1.equals(t1));
-		assertTrue(t2.equals(t2));
-		assertTrue(t3.equals(t3));
+		assertEquals(empty, empty);
+		assertEquals(t1, t1);
+		assertEquals(t2, t2);
+		assertEquals(t3, t3);
 	}
 
 	@Test
 	public void testEqualsWrongObject() {
-		assertFalse(empty.equals(new String(empty.toString())));
+		assertNotEquals(empty, new String(empty.toString()));
 	}
 
 	@Test
@@ -219,7 +219,7 @@ public class TestTime {
 		assertEquals(200000000, t.getNsecs());
 		assertFalse(t.isZero());
 		assertEquals(10.2, t.toSec(), 0);
-		assertEquals(10200000000l, t.toNSec());
+		assertEquals(10200000000L, t.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", t.toString());
 
@@ -232,7 +232,7 @@ public class TestTime {
 
 	@Test
 	public void testFromNano() {
-		Time t = Time.fromNano(10200000000l);
+		Time t = Time.fromNano(10200000000L);
 
 		assertEquals(10, t.secs);
 		assertEquals(200000000, t.nsecs);
@@ -240,7 +240,7 @@ public class TestTime {
 		assertEquals(200000000, t.getNsecs());
 		assertFalse(t.isZero());
 		assertEquals(10.2, t.toSec(), 0);
-		assertEquals(10200000000l, t.toNSec());
+		assertEquals(10200000000L, t.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", t.toString());
 
@@ -263,7 +263,7 @@ public class TestTime {
 		assertEquals(200000000, t.getNsecs());
 		assertFalse(t.isZero());
 		assertEquals(10.2, t.toSec(), 0);
-		assertEquals(10200000000l, t.toNSec());
+		assertEquals(10200000000L, t.toNSec());
 
 		assertEquals("{\"secs\":10,\"nsecs\":200000000}", t.toString());
 
@@ -326,7 +326,7 @@ public class TestTime {
 		assertEquals(t1.getSecs(), t.getSecs());
 		assertEquals(0, t.getNsecs());
 		assertEquals((double) t1.getSecs(), t.toSec(), 0);
-		assertEquals(t1.getSecs() * 1000000000l, t.toNSec());
+		assertEquals(t1.getSecs() * 1000000000L, t.toNSec());
 	}
 
 	public boolean greaterThan(long a, long b) {
